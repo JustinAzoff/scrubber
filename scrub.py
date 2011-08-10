@@ -47,9 +47,7 @@ class Scrubber:
     def show_image(self, filename):
         buf = self.cache.get(filename)
         if not buf:
-            buf = gtk.gdk.pixbuf_new_from_file(filename)
-            buf = buf.scale_simple(self.box.allocation.width, self.box.allocation.height, gtk.gdk.INTERP_BILINEAR)
-
+            buf = gtk.gdk.pixbuf_new_from_file_at_size(filename, self.box.allocation.width, self.box.allocation.height)
             self.cache[filename] = buf
         self.image.set_from_pixbuf(buf)
         self.filename = filename
