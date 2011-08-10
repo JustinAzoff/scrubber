@@ -28,6 +28,8 @@ class Scrubber:
         self.box.show()
         self.window.show()
 
+        self.cache = {}
+
     def delete_event(self, widget, event, data=None):
         return False
 
@@ -39,16 +41,23 @@ class Scrubber:
         self.pos = 0
         self.len = len(images)
         self.displayed_file = 0
-        self.show_image(images[0])
         gtk.main()
 
 
     def show_image(self, filename):
-        self.image.set_from_file(filename)
+        buf = self.cache.get(filename)
+        if not buf:
+            buf = gtk.gdk.pixbuf_new_from_file(filename)
+            buf = buf.scale_simple(self.box.allocation.width, self.box.allocation.height, gtk.gdk.INTERP_BILINEAR)
+
+            self.cache[filename] = buf
+        self.image.set_from_pixbuf(buf)
         self.filename = filename
 
     def show_image_by_num(self, num):
         if num == self.displayed_file:
+            return
+        if num < 0 or num >= self.len:
             return
         print 'showing', 1+num, 'out of', self.len
         self.displayed_file = num
