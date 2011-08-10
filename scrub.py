@@ -41,8 +41,14 @@ class Scrubber:
         self.pos = 0
         self.len = len(images)
         self.displayed_file = 0
+
+        gobject.timeout_add(10, self.play, 0)
         gtk.main()
 
+    def play(self, image):
+        self.show_image_by_num(image)
+        if image < self.len:
+            gobject.timeout_add(10, self.play, image+1)
 
     def show_image(self, filename):
         buf = self.cache.get(filename)
