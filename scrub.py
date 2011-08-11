@@ -47,6 +47,7 @@ class Scrubber:
 
         self.playing = False
         self.loop = False
+        self.autoreverse = False
 
         self.play_start()
         gtk.main()
@@ -64,7 +65,31 @@ class Scrubber:
         else :
             self.playing = False
             if self.loop:
-                self.play_start()
+                if self.autoreverse:
+                    self.play_backwards()
+                else:
+                    self.play()
+
+    def play_backwards(self, image="last"):
+        if self.playing and image == "last":
+            return
+
+        if image == "last":
+            image = len(self.images) - 1
+
+        self.playing = True
+        self.show_image_by_num(image)
+
+        if image != 0:
+            gobject.timeout_add(self.frame_delay, self.play_backwards, image-1)
+        else :
+            self.playing = False
+            if self.loop:
+                if self.autoreverse:
+                    self.play()
+                else:
+                    self.play_backwards()
+
 
     def show_image(self, filename):
         buf = self.cache.get(filename)
@@ -105,8 +130,16 @@ class Scrubber:
             self.play()
             return
 
+        if event.keyval == gtk.keysyms.Left:
+            self.play_backwards()
+            return
+
         if event.keyval == gtk.keysyms.l:
             self.loop = not self.loop
+            return
+
+        if event.keyval == gtk.keysyms.r:
+            self.autoreverse = not self.autoreverse
             return
 
         if event.keyval == gtk.keysyms.Up:
