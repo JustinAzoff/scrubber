@@ -143,6 +143,7 @@ class Scrubber:
             self.show_image_by_num(self.displayed_file-self.skip)
 
     def motion_notify_event(self, widget, event):
+        gobject.source_remove(self.timer)
         w =  widget.allocation.width
         x = event.x
         if x < 0:
