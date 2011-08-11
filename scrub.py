@@ -63,7 +63,7 @@ class Scrubber:
             return
         if num < 0 or num >= self.len:
             return
-        print 'showing', 1+num, 'out of', self.len
+        #print 'showing', 1+num, 'out of', self.len
         self.displayed_file = num
         self.show_image(self.images[num])
 
