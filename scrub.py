@@ -76,12 +76,13 @@ class Scrubber:
         self.playing = False
         self.loop = False
         self.autoreverse = False
+        self.skip = 1
 
         self.play_start()
         gtk.main()
 
     def update_status(self):
-        label = "Loop: %s. Autoreverse: %s. Delay: %s. File: %s" % (self.loop, self.autoreverse, self.frame_delay, self.filename)
+        label = "Loop: %s. Autoreverse: %s. Delay: %s. Skip: %s. File: %s" % (self.loop, self.autoreverse, self.frame_delay, self.skip, self.filename)
         self.label.set_text(label)
 
     def play_start(self):
@@ -90,8 +91,8 @@ class Scrubber:
     def play(self, image=0):
         gobject.source_remove(self.timer)
         self.show_image_by_num(image)
-        if image < self.last_image:
-            self.timer = gobject.timeout_add(self.frame_delay, self.play, image+1)
+        if image+self.skip < self.last_image:
+            self.timer = gobject.timeout_add(self.frame_delay, self.play, image+self.skip)
         else :
             if self.loop:
                 if self.autoreverse:
@@ -106,8 +107,8 @@ class Scrubber:
 
         self.show_image_by_num(image)
 
-        if image != 0:
-            self.timer = gobject.timeout_add(self.frame_delay, self.play_backwards, image-1)
+        if image - self.skip >= 0:
+            self.timer = gobject.timeout_add(self.frame_delay, self.play_backwards, image-self.skip)
         else :
             if self.loop:
                 if self.autoreverse:
@@ -175,13 +176,20 @@ class Scrubber:
             self.frame_delay = increase_delay(self.frame_delay)
         if event.keyval == gtk.keysyms.Down:
             self.frame_delay = decrease_delay(self.frame_delay)
+
+        if event.keyval == gtk.keysyms.bracketleft:
+            if self.skip !=1:
+                self.skip = self.skip/2
+        if event.keyval == gtk.keysyms.bracketright:
+            if self.skip !=32:
+                self.skip = self.skip*2
         self.update_status()
 
     def on_image_expose(self, widget, event):
         if (self.box_width, self.box_height) != (self.box.allocation.width, self.box.allocation.height):
             print "Window resized"
             self.cache = {}
-            self.show_image(self.images[self.displayed_file])
+            self.show_image(self.images[self.displayed_file or 0])
         (self.box_width, self.box_height) = (self.box.allocation.width, self.box.allocation.height)
 
 if __name__ == "__main__":
