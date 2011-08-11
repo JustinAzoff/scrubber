@@ -6,6 +6,21 @@ pygtk.require('2.0')
 import gtk
 import gobject
 
+frame_delay = 1000/60
+frame_delays = [int(frame_delay * x) for x in (0.125, 0.25, 0.5, 0.75, 1, 2, 3, 4)]
+
+def increase_delay(d):
+    current = frame_delays.index(d)
+    if current == len(frame_delays)-1:
+        return d
+    return frame_delays[current+1]
+
+def decrease_delay(d):
+    current = frame_delays.index(d)
+    if current == 0:
+        return d
+    return frame_delays[current -1]
+
 class Scrubber:
     def __init__(self):
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -31,7 +46,7 @@ class Scrubber:
 
         self.cache = {}
 
-        self.frame_delay = 1000/60
+        self.frame_delay = frame_delay
         self.timer = None
 
     def delete_event(self, widget, event, data=None):
@@ -145,11 +160,9 @@ class Scrubber:
             return
 
         if event.keyval == gtk.keysyms.Up:
-            self.frame_delay += 100
+            self.frame_delay = increase_delay(self.frame_delay)
         if event.keyval == gtk.keysyms.Down:
-            self.frame_delay -= 100
-        if self.frame_delay <=0:
-            self.frame_delay = 10
+            self.frame_delay = decrease_delay(self.frame_delay)
 
 if __name__ == "__main__":
     images = sys.argv[1:]
