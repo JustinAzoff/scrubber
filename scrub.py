@@ -131,7 +131,7 @@ class Scrubber:
             return
         if num < 0 or num > self.last_image:
             return
-        #print 'showing', 1+num, 'out of', self.len
+        #print 'showing', num, 'out of', self.len-1
         self.displayed_file = num
         self.show_image(self.images[num])
 
@@ -188,7 +188,6 @@ class Scrubber:
 
     def on_image_expose(self, widget, event):
         if (self.box_width, self.box_height) != (self.box.allocation.width, self.box.allocation.height):
-            print "Window resized"
             self.cache = {}
             self.show_image(self.images[self.displayed_file or 0])
         (self.box_width, self.box_height) = (self.box.allocation.width, self.box.allocation.height)
