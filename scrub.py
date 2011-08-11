@@ -140,6 +140,8 @@ class Scrubber:
 
         if event.keyval == gtk.keysyms.r:
             self.autoreverse = not self.autoreverse
+            if self.autoreverse:
+                self.loop = True
             return
 
         if event.keyval == gtk.keysyms.Up:
