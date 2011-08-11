@@ -32,6 +32,7 @@ class Scrubber:
         self.cache = {}
 
         self.frame_delay = 1000/60
+        self.timer = None
 
     def delete_event(self, widget, event, data=None):
         return False
@@ -53,17 +54,14 @@ class Scrubber:
         gtk.main()
 
     def play_start(self):
-        gobject.timeout_add(200, self.play, 0)
+        self.timer = gobject.timeout_add(200, self.play, 0)
 
     def play(self, image=0):
-        if self.playing and image==0:
-            return
-        self.playing = True
+        gobject.source_remove(self.timer)
         self.show_image_by_num(image)
-        if image < self.len:
-            gobject.timeout_add(self.frame_delay, self.play, image+1)
+        if image < self.len -1:
+            self.timer = gobject.timeout_add(self.frame_delay, self.play, image+1)
         else :
-            self.playing = False
             if self.loop:
                 if self.autoreverse:
                     self.play_backwards()
@@ -71,19 +69,15 @@ class Scrubber:
                     self.play()
 
     def play_backwards(self, image="last"):
-        if self.playing and image == "last":
-            return
-
+        gobject.source_remove(self.timer)
         if image == "last":
             image = len(self.images) - 1
 
-        self.playing = True
         self.show_image_by_num(image)
 
         if image != 0:
-            gobject.timeout_add(self.frame_delay, self.play_backwards, image-1)
+            self.timer = gobject.timeout_add(self.frame_delay, self.play_backwards, image-1)
         else :
-            self.playing = False
             if self.loop:
                 if self.autoreverse:
                     self.play()
@@ -126,12 +120,13 @@ class Scrubber:
         self.show_image_by_num(image_num)
 
     def type(self, widget, event):
+        print self.timer
         if event.keyval in (gtk.keysyms.Right, gtk.keysyms.space, gtk.keysyms.p):
-            self.play()
+            self.play(self.displayed_file)
             return
 
         if event.keyval == gtk.keysyms.Left:
-            self.play_backwards()
+            self.play_backwards(self.displayed_file)
             return
 
         if event.keyval == gtk.keysyms.l:
