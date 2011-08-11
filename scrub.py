@@ -138,9 +138,9 @@ class Scrubber:
 
     def click(self, widget, event):
         if event.button == 1:
-            self.show_image_by_num(self.displayed_file+1)
+            self.show_image_by_num(self.displayed_file+self.skip)
         else:
-            self.show_image_by_num(self.displayed_file-1)
+            self.show_image_by_num(self.displayed_file-self.skip)
 
     def motion_notify_event(self, widget, event):
         w =  widget.allocation.width
