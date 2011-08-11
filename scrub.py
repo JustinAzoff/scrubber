@@ -150,6 +150,7 @@ class Scrubber:
         if x >= w:
             x = w
         image_num = int(self.last_image * x / w)
+        image_num = (image_num/self.skip)*self.skip #align on a skip boundry
         self.show_image_by_num(image_num)
 
     def type(self, widget, event):
