@@ -67,7 +67,7 @@ class Scrubber:
         self.pos = 0
         self.len = len(images)
         self.last_image = self.len - 1
-        self.displayed_file = 0
+        self.displayed_file = None
         self.filename=""
 
         self.playing = False
