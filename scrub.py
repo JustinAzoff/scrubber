@@ -17,6 +17,7 @@ class Scrubber:
 
         self.box.connect("motion_notify_event", self.motion_notify_event)
         self.box.connect("button_press_event", self.click)
+        self.window.connect("key_press_event", self.type)
 
         self.image = gtk.Image()
 
@@ -30,6 +31,8 @@ class Scrubber:
 
         self.cache = {}
 
+        self.frame_delay = 1000/60
+
     def delete_event(self, widget, event, data=None):
         return False
 
@@ -42,13 +45,26 @@ class Scrubber:
         self.len = len(images)
         self.displayed_file = 0
 
-        gobject.timeout_add(10, self.play, 0)
+        self.playing = False
+        self.loop = False
+
+        self.play_start()
         gtk.main()
 
-    def play(self, image):
+    def play_start(self):
+        gobject.timeout_add(200, self.play, 0)
+
+    def play(self, image=0):
+        if self.playing and image==0:
+            return
+        self.playing = True
         self.show_image_by_num(image)
         if image < self.len:
-            gobject.timeout_add(10, self.play, image+1)
+            gobject.timeout_add(self.frame_delay, self.play, image+1)
+        else :
+            self.playing = False
+            if self.loop:
+                self.play_start()
 
     def show_image(self, filename):
         buf = self.cache.get(filename)
@@ -84,6 +100,22 @@ class Scrubber:
         image_num = int((self.len-1) * x / w)
         self.show_image_by_num(image_num)
 
+    def type(self, widget, event):
+        if event.keyval in (gtk.keysyms.Right, gtk.keysyms.space, gtk.keysyms.p):
+            self.play()
+            return
+
+        if event.keyval == gtk.keysyms.l:
+            self.loop = not self.loop
+            return
+
+        if event.keyval == gtk.keysyms.Up:
+            self.frame_delay += 100
+        if event.keyval == gtk.keysyms.Down:
+            self.frame_delay -= 100
+        if self.frame_delay <=0:
+            self.frame_delay = 10
+        print "delay: ", self.frame_delay
 
 if __name__ == "__main__":
     images = sys.argv[1:]
