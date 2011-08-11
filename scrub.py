@@ -29,20 +29,27 @@ class Scrubber:
 
         self.box = gtk.EventBox()
 
-
         self.box.connect("motion_notify_event", self.motion_notify_event)
         self.box.connect("button_press_event", self.click)
         self.window.connect("key_press_event", self.type)
 
         self.image = gtk.Image()
-
         self.box.add(self.image)
+        
+        self.label = gtk.Label()
+        self.label.set_justify(gtk.JUSTIFY_LEFT)
 
-        self.window.add(self.box)
+        hbox = gtk.HBox()
+        hbox.pack_start(self.label, False, False)
 
-        self.image.show()
-        self.box.show()
-        self.window.show()
+        vbox = gtk.VBox()
+        vbox.add(self.box)
+        vbox.pack_start(hbox, False, False)
+
+        self.window.add(vbox)
+
+        for w in self.image, self.box, self.label, hbox, vbox, self.window:
+            w.show()
 
         self.cache = {}
 
@@ -61,6 +68,7 @@ class Scrubber:
         self.len = len(images)
         self.last_image = self.len - 1
         self.displayed_file = 0
+        self.filename=""
 
         self.playing = False
         self.loop = False
@@ -68,6 +76,10 @@ class Scrubber:
 
         self.play_start()
         gtk.main()
+
+    def update_status(self):
+        label = "Loop: %s. Autoreverse: %s. Delay: %s. File: %s" % (self.loop, self.autoreverse, self.frame_delay, self.filename)
+        self.label.set_text(label)
 
     def play_start(self):
         self.timer = gobject.timeout_add(200, self.play, 0)
@@ -108,6 +120,7 @@ class Scrubber:
             self.cache[filename] = buf
         self.image.set_from_pixbuf(buf)
         self.filename = filename
+        self.update_status()
 
     def show_image_by_num(self, num):
         if num == self.displayed_file:
@@ -141,28 +154,25 @@ class Scrubber:
             if file_to_play == self.last_image:
                 file_to_play = 0
             self.play(file_to_play)
-            return
 
         if event.keyval == gtk.keysyms.Left:
             if file_to_play == 0:
                 file_to_play = self.last_image
             self.play_backwards(file_to_play)
-            return
 
         if event.keyval == gtk.keysyms.l:
             self.loop = not self.loop
-            return
 
         if event.keyval == gtk.keysyms.r:
             self.autoreverse = not self.autoreverse
             if self.autoreverse:
                 self.loop = True
-            return
 
         if event.keyval == gtk.keysyms.Up:
             self.frame_delay = increase_delay(self.frame_delay)
         if event.keyval == gtk.keysyms.Down:
             self.frame_delay = decrease_delay(self.frame_delay)
+        self.update_status()
 
 if __name__ == "__main__":
     images = sys.argv[1:]
