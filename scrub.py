@@ -44,6 +44,7 @@ class Scrubber:
         self.images = images# + list(reversed(images))
         self.pos = 0
         self.len = len(images)
+        self.last_image = self.len - 1
         self.displayed_file = 0
 
         self.playing = False
@@ -59,7 +60,7 @@ class Scrubber:
     def play(self, image=0):
         gobject.source_remove(self.timer)
         self.show_image_by_num(image)
-        if image < self.len -1:
+        if image < self.last_image:
             self.timer = gobject.timeout_add(self.frame_delay, self.play, image+1)
         else :
             if self.loop:
@@ -71,7 +72,7 @@ class Scrubber:
     def play_backwards(self, image="last"):
         gobject.source_remove(self.timer)
         if image == "last":
-            image = len(self.images) - 1
+            image = self.last_image
 
         self.show_image_by_num(image)
 
@@ -96,7 +97,7 @@ class Scrubber:
     def show_image_by_num(self, num):
         if num == self.displayed_file:
             return
-        if num < 0 or num >= self.len:
+        if num < 0 or num > self.last_image:
             return
         #print 'showing', 1+num, 'out of', self.len
         self.displayed_file = num
@@ -116,17 +117,21 @@ class Scrubber:
             x=0
         if x >= w:
             x = w
-        image_num = int((self.len-1) * x / w)
+        image_num = int(self.last_image * x / w)
         self.show_image_by_num(image_num)
 
     def type(self, widget, event):
-        print self.timer
+        file_to_play = self.displayed_file
         if event.keyval in (gtk.keysyms.Right, gtk.keysyms.space, gtk.keysyms.p):
-            self.play(self.displayed_file)
+            if file_to_play == self.last_image:
+                file_to_play = 0
+            self.play(file_to_play)
             return
 
         if event.keyval == gtk.keysyms.Left:
-            self.play_backwards(self.displayed_file)
+            if file_to_play == 0:
+                file_to_play = self.last_image
+            self.play_backwards(file_to_play)
             return
 
         if event.keyval == gtk.keysyms.l:
@@ -145,7 +150,6 @@ class Scrubber:
             self.frame_delay -= 100
         if self.frame_delay <=0:
             self.frame_delay = 10
-        print "delay: ", self.frame_delay
 
 if __name__ == "__main__":
     images = sys.argv[1:]
