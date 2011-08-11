@@ -34,6 +34,8 @@ class Scrubber:
         self.window.connect("key_press_event", self.type)
 
         self.image = gtk.Image()
+        self.image.connect('expose-event', self.on_image_expose)
+
         self.box.add(self.image)
         
         self.label = gtk.Label()
@@ -51,6 +53,7 @@ class Scrubber:
         for w in self.image, self.box, self.label, hbox, vbox, self.window:
             w.show()
 
+        (self.box_width, self.box_height) = (self.box.allocation.width, self.box.allocation.height)
         self.cache = {}
 
         self.frame_delay = frame_delay
@@ -173,6 +176,13 @@ class Scrubber:
         if event.keyval == gtk.keysyms.Down:
             self.frame_delay = decrease_delay(self.frame_delay)
         self.update_status()
+
+    def on_image_expose(self, widget, event):
+        if (self.box_width, self.box_height) != (self.box.allocation.width, self.box.allocation.height):
+            print "Window resized"
+            self.cache = {}
+            self.show_image(self.images[self.displayed_file])
+        (self.box_width, self.box_height) = (self.box.allocation.width, self.box.allocation.height)
 
 if __name__ == "__main__":
     images = sys.argv[1:]
