@@ -18,3 +18,4 @@ Keys
  * r - toggle autoreverse. implicitly enables looping
  * up/down - increase/decrease frame delay
  * ] and [ - increase/descease the number of skipped frames - by a power of 2
+ * . and , - next/prev frame
