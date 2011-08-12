@@ -11,8 +11,9 @@ Mouse
 Keys
 ----
 
- * p/space/right - play
+ * p/right - play
  * left - play in reverse
+ * space - stop
  * l - toggle looping
  * r - toggle autoreverse. implicitly enables looping
  * up/down - increase/decrease frame delay

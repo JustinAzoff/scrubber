@@ -77,6 +77,8 @@ class Scrubber:
         self.loop = False
         self.autoreverse = False
         self.skip = 1
+        self.was_playing = "forwards"
+        self.playing = False
 
         self.play_start()
         gtk.main()
@@ -89,18 +91,23 @@ class Scrubber:
         self.timer = gobject.timeout_add(200, self.play, 0)
 
     def play(self, image=0):
+        self.playing="forwards"
         gobject.source_remove(self.timer)
         self.show_image_by_num(image)
         if image+self.skip < self.last_image:
             self.timer = gobject.timeout_add(self.frame_delay, self.play, image+self.skip)
         else :
+            self.playing = None
             if self.loop:
                 if self.autoreverse:
                     self.play_backwards()
                 else:
                     self.play()
 
+    play_forwards = play
+
     def play_backwards(self, image="last"):
+        self.playing="backwards"
         gobject.source_remove(self.timer)
         if image == "last":
             image = self.last_image
@@ -110,12 +117,17 @@ class Scrubber:
         if image - self.skip >= 0:
             self.timer = gobject.timeout_add(self.frame_delay, self.play_backwards, image-self.skip)
         else :
+            self.playing = None
             if self.loop:
                 if self.autoreverse:
                     self.play()
                 else:
                     self.play_backwards()
 
+    def stop(self):
+        self.was_playing = self.playing
+        self.playing = False
+        gobject.source_remove(self.timer)
 
     def show_image(self, filename):
         buf = self.cache.get(filename)
@@ -156,7 +168,9 @@ class Scrubber:
 
     def type(self, widget, event):
         file_to_play = self.displayed_file
-        if event.keyval in (gtk.keysyms.Right, gtk.keysyms.space, gtk.keysyms.p):
+        if event.keyval == gtk.keysyms.space:
+            self.handle_pause()
+        if event.keyval in (gtk.keysyms.Right, gtk.keysyms.p):
             if file_to_play == self.last_image:
                 file_to_play = 0
             self.play(file_to_play)
@@ -186,6 +200,12 @@ class Scrubber:
             if self.skip !=32:
                 self.skip = self.skip*2
         self.update_status()
+
+    def handle_pause(self):
+        if self.playing:
+            self.stop()
+        else:
+            getattr(self, 'play_' + self.was_playing)(self.displayed_file)
 
     def on_image_expose(self, widget, event):
         if (self.box_width, self.box_height) != (self.box.allocation.width, self.box.allocation.height):
