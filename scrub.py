@@ -30,8 +30,8 @@ class Scrubber:
         self.box = gtk.EventBox()
 
         self.box.connect("motion_notify_event", self.motion_notify_event)
-        self.box.connect("button_press_event", self.click)
-        self.window.connect("key_press_event", self.type)
+        self.box.connect("button_press_event", self.on_click)
+        self.window.connect("key_press_event", self.on_type)
 
         self.image = gtk.Image()
         self.image.connect('expose-event', self.on_image_expose)
@@ -148,7 +148,7 @@ class Scrubber:
         self.show_image(self.images[num])
 
 
-    def click(self, widget, event):
+    def on_click(self, widget, event):
         if event.button == 1:
             self.show_image_by_num(self.displayed_file+self.skip)
         else:
@@ -166,7 +166,7 @@ class Scrubber:
         image_num = (image_num/self.skip)*self.skip #align on a skip boundry
         self.show_image_by_num(image_num)
 
-    def type(self, widget, event):
+    def on_type(self, widget, event):
         file_to_play = self.displayed_file
         if event.keyval == gtk.keysyms.space:
             self.handle_pause()
