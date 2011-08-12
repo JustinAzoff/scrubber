@@ -125,8 +125,9 @@ class Scrubber:
                     self.play_backwards()
 
     def stop(self):
-        self.was_playing = self.playing
-        self.playing = False
+        if self.playing:
+            self.was_playing = self.playing
+            self.playing = False
         gobject.source_remove(self.timer)
 
     def show_image(self, filename):
@@ -148,14 +149,21 @@ class Scrubber:
         self.show_image(self.images[num])
 
 
+    def next_frame(self):
+        self.stop()
+        self.show_image_by_num(self.displayed_file+self.skip)
+    def prev_frame(self):
+        self.stop()
+        self.show_image_by_num(self.displayed_file-self.skip)
+
     def on_click(self, widget, event):
         if event.button == 1:
-            self.show_image_by_num(self.displayed_file+self.skip)
+            self.next_frame()
         else:
-            self.show_image_by_num(self.displayed_file-self.skip)
+            self.prev_frame()
 
     def motion_notify_event(self, widget, event):
-        gobject.source_remove(self.timer)
+        self.stop()
         w =  widget.allocation.width
         x = event.x
         if x < 0:
@@ -167,45 +175,65 @@ class Scrubber:
         self.show_image_by_num(image_num)
 
     def on_type(self, widget, event):
+        S = gtk.keysyms
+        key_mapping = {
+            S.space:    self.handle_pause,
+            S.p:        self.handle_right,
+            S.Right:    self.handle_right,
+            S.Left:     self.handle_left,
+            S.Up:       self.handle_up,
+            S.Down:     self.handle_down,
+            S.l:        self.handle_loop_toggle,
+            S.r:        self.handle_autoreverse_toggle,
+            S.period:   self.next_frame,
+            S.comma:    self.prev_frame,
+            S.bracketleft: self.handle_bracketleft,
+            S.bracketright: self.handle_bracketright,
+        }
+        func = key_mapping.get(event.keyval, None)
+        if func:
+            func()
+            self.update_status()
+
+    def handle_right(self):
         file_to_play = self.displayed_file
-        if event.keyval == gtk.keysyms.space:
-            self.handle_pause()
-        if event.keyval in (gtk.keysyms.Right, gtk.keysyms.p):
-            if file_to_play == self.last_image:
-                file_to_play = 0
-            self.play(file_to_play)
+        if file_to_play == self.last_image:
+            file_to_play = 0
+        self.play(file_to_play)
 
-        if event.keyval == gtk.keysyms.Left:
-            if file_to_play == 0:
-                file_to_play = self.last_image
-            self.play_backwards(file_to_play)
+    def handle_left(self):
+        file_to_play = self.displayed_file
+        if file_to_play == 0:
+            file_to_play = self.last_image
+        self.play_backwards(file_to_play)
+    def handle_up(self):
+        self.frame_delay = increase_delay(self.frame_delay)
 
-        if event.keyval == gtk.keysyms.l:
-            self.loop = not self.loop
+    def handle_down(self):
+        self.frame_delay = decrease_delay(self.frame_delay)
 
-        if event.keyval == gtk.keysyms.r:
-            self.autoreverse = not self.autoreverse
-            if self.autoreverse:
-                self.loop = True
+    def handle_bracketleft(self):
+        if self.skip !=1:
+            self.skip = self.skip/2
 
-        if event.keyval == gtk.keysyms.Up:
-            self.frame_delay = increase_delay(self.frame_delay)
-        if event.keyval == gtk.keysyms.Down:
-            self.frame_delay = decrease_delay(self.frame_delay)
+    def handle_bracketright(self):
+        if self.skip !=32:
+            self.skip = self.skip*2
 
-        if event.keyval == gtk.keysyms.bracketleft:
-            if self.skip !=1:
-                self.skip = self.skip/2
-        if event.keyval == gtk.keysyms.bracketright:
-            if self.skip !=32:
-                self.skip = self.skip*2
-        self.update_status()
 
     def handle_pause(self):
         if self.playing:
             self.stop()
         else:
             getattr(self, 'play_' + self.was_playing)(self.displayed_file)
+
+    def handle_loop_toggle(self):
+        self.loop = not self.loop
+
+    def handle_autoreverse_toggle(self):
+        self.autoreverse = not self.autoreverse
+        if self.autoreverse:
+            self.loop = True
 
     def on_image_expose(self, widget, event):
         if (self.box_width, self.box_height) != (self.box.allocation.width, self.box.allocation.height):
