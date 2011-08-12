@@ -6,8 +6,9 @@ pygtk.require('2.0')
 import gtk
 import gobject
 
-frame_delay = 1000/60
-frame_delays = [int(frame_delay * x) for x in (0.125, 0.25, 0.5, 0.75, 1, 2, 3, 4)]
+frame_delay = 1000/60.0
+frame_delays = [int(frame_delay * x) for x in (0.125, 0.25, 0.5, 0.75, 1, 2, 4, 8, 16, 30, 60, 120)]
+frame_delay = int(frame_delay)
 
 def increase_delay(d):
     current = frame_delays.index(d)
