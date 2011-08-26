@@ -95,7 +95,7 @@ class Scrubber:
         self.playing="forwards"
         gobject.source_remove(self.timer)
         self.show_image_by_num(image)
-        if image+self.skip < self.last_image:
+        if image+self.skip <= self.last_image:
             self.timer = gobject.timeout_add(self.frame_delay, self.play, image+self.skip)
         else :
             self.playing = None
